@@ -17,12 +17,13 @@ namespace MyTest01
             using (var db = new ManyToManyDbEntities())
             {
 
+                //取得資料
                 var users = db.Users.ToList();
                 var roles = db.Roles.ToList();
                 var userRoles = db.UserRoles.ToList();
                 var userRolesAdd = userRoles.Select(x => new UserRole() { UserId = x.UserId, RoleId = x.RoleId }).ToList();
 
-                //刪除資料
+                //刪除資料 (如果先把刪除的部份先 SaveChanges(), 亦即解除註解, 就可以正常運作; 但這樣佰變成是 2 筆 交易)
                 db.UserRoles.RemoveRange(userRoles);
                 db.Roles.RemoveRange(roles);
                 db.Users.RemoveRange(users);
