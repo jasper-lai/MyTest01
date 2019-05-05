@@ -1,6 +1,10 @@
 # MyTest01
 
-## 情境:
+## 真實情境:
+最近有一個專案 必須將 Microsoft Project 檔案上傳到伺服端, 經過 3rd library : MPXJ 解析 (這個部份已完成), 取出 Tasks / Resources (多對多), 並作成 TaskToResources 對應, 以解決多對多的問題.  
+每次上傳 Microsoft Project 檔案, 都要先將舊的 TaskToResources / Resources / Tasks 先刪掉 再加入新的 Tasks / Resources / TaskToResources 但會出現 'ProjectModel.FK_TaskToResources_Resources' 關聯性的主要端點已刪除 的錯誤, 為簡化問題, 故採用以下 {模擬情境} 作模擬.  
+
+## 模擬情境:
 3 個 Table ( Users / Roles / UserRoles ), Users 與 Roles 為多對多的關係. 參考如下的 <SQL.1>  
 發現 Entity Framework 似乎沒有依程式的 RemoveRange / AddRange 的順序執行.  
 只要放在同一個 dbcontext, 只作 1 次 SaveChanges(), 就會出現問題: "Violation of PRIMARY KEY constraint 'PK_Roles'. Cannot insert duplicate key in object 'dbo.Roles'. The duplicate key value is (Role01).
