@@ -13,25 +13,31 @@ The statement has been terminated. "
 
 ## 程式順序:
   
-//取得資料  
-var users = db.Users.ToList();  
-var roles = db.Roles.ToList();  
-var userRoles = db.UserRoles.ToList();  
-var userRolesAdd = userRoles.Select(x => new UserRole() { UserId = x.UserId, RoleId = x.RoleId }).ToList();   
+    //取得資料  
+    var users = db.Users.ToList();  
+    var roles = db.Roles.ToList();  
+    var userRoles = db.UserRoles.ToList();  
+    var userRolesAdd = userRoles.Select(x => new UserRole() { UserId = x.UserId, RoleId = x.RoleId }).ToList();   
+    ////如果 3 個 table 都給新的 PK, 就會正常; 但系統需求上, 有可能因為只是修改部份內容, PK 會相同.
+    //var usersAdd = users.Select(x => new User() { UserId = x.UserId + "N", UserName = x.UserName}).ToList();
+    //var rolesAdd = roles.Select(x => new Role() { RoleId = x.RoleId + "N", RoleName = x.RoleName }).ToList();
+    //var userRolesAdd = userRoles.Select(x => new UserRole() { UserId = x.UserId + "N", RoleId = x.RoleId + "N" }).ToList();
   
-//刪除資料 (如果先把刪除的部份先 SaveChanges(), 亦即解除註解, 就可以正常運作; 但這樣佰變成是 2 筆 交易)  
-db.UserRoles.RemoveRange(userRoles);  
-db.Roles.RemoveRange(roles);  
-db.Users.RemoveRange(users);  
-//db.Database.Log = Console.WriteLine;  
-//db.SaveChanges();  
-  
-//加入資料  
-db.Users.AddRange(users);  
-db.Roles.AddRange(roles);  
-db.UserRoles.AddRange(userRolesAdd);  
-db.Database.Log = Console.WriteLine;  
-db.SaveChanges();  
+    //刪除資料 (如果先把刪除的部份先 SaveChanges(), 亦即解除註解, 就可以正常運作; 但這樣佰變成是 2 筆 交易)  
+    db.UserRoles.RemoveRange(userRoles);  
+    db.Roles.RemoveRange(roles);  
+    db.Users.RemoveRange(users);  
+    //db.Database.Log = Console.WriteLine;  
+    //db.SaveChanges();  
+ 
+    //加入資料  
+    db.Users.AddRange(users);  
+    db.Roles.AddRange(roles);  
+    //db.Users.AddRange(usersAdd);  
+    //db.Roles.AddRange(rolesAdd);  
+    db.UserRoles.AddRange(userRolesAdd);  
+    db.Database.Log = Console.WriteLine;  
+    db.SaveChanges();  
  
 
 ## SQL 的 Log.
