@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 using MyTest01.Models;
 
 namespace MyTest01
@@ -19,18 +20,33 @@ namespace MyTest01
             //Violation of PRIMARY KEY constraint 'PK_Roles'. Cannot insert duplicate key in object 'dbo.Roles'. The duplicate key value is (Role01).
             try
             {
+                Console.WriteLine("========== 原始失敗案例 ==============");
                 Execute_NG();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
             }
-            
-            //2. 成功案例: (先決條件需要給不同的 PK 值)
-            //如果 3 個 table 都給新的 PK 值, 就會正常; 但系統需求上, 有可能因為只是修改部份內容, PK 會相同.
+
+            ////2. 成功案例: (先決條件需要給不同的 PK 值)
+            ////如果 3 個 table 都給新的 PK 值, 就會正常; 但系統需求上, 有可能因為只是修改部份內容, PK 會相同.
+            //try
+            //{
+            //    Console.WriteLine("========== 成功案例: (先決條件需要給不同的 PK 值) ==============");
+            //    Execute_OK_With_New_PK();
+            //}
+            //catch (Exception e)
+            //{
+            //    Console.WriteLine(e.ToString());
+            //}
+
+            //3. 成功案例: (使用 TransactionScope 或 BeginTransaction)
+            // https://stackoverflow.com/questions/7335582/dbcontext-savechanges-order-of-statement-execution/7335895#7335895
+            // https://jeffprogrammer.wordpress.com/2016/12/06/entity-framework-with-transactionscope/
             try
             {
-                Execute_OK_With_New_PK();
+                Console.WriteLine("========== 成功案例: (使用 TransactionScope 或 BeginTransaction) ==============");
+                Execute_OK_With_TransactionScope();
             }
             catch (Exception e)
             {
@@ -72,7 +88,6 @@ namespace MyTest01
             }
         }
 
-
         static void Execute_OK_With_New_PK()
         {
 
@@ -110,6 +125,44 @@ namespace MyTest01
 
             }
 
+        }
+
+        static void Execute_OK_With_TransactionScope()
+        {
+            using (var db = new ManyToManyDbEntities())
+            {
+
+                //讀取資料
+                var users = db.Users.ToList();
+                var roles = db.Roles.ToList();
+                var userRoles = db.UserRoles.ToList();
+                var userRolesAdd = userRoles.Select(x => new UserRole() { UserId = x.UserId, RoleId = x.RoleId }).ToList();
+
+                using (TransactionScope ts = new TransactionScope())
+                {
+                    //刪除資料
+                    db.UserRoles.RemoveRange(userRoles);
+                    db.Roles.RemoveRange(roles);
+                    db.Users.RemoveRange(users);
+                    db.Database.Log = Console.WriteLine;
+                    db.SaveChanges();
+
+                    Console.WriteLine("Press any key to continue (5)...");
+                    Console.ReadLine();
+
+                    //加入資料
+                    db.Users.AddRange(users);
+                    db.Roles.AddRange(roles);
+                    db.UserRoles.AddRange(userRolesAdd);
+                    db.Database.Log = Console.WriteLine;
+                    db.SaveChanges();
+
+                    Console.WriteLine("Press any key to continue (6)...");
+                    Console.ReadLine();
+
+                    ts.Complete();
+                }
+            }
         }
 
 
