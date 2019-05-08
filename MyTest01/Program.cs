@@ -14,6 +14,32 @@ namespace MyTest01
 
         static void Main(string[] args)
         {
+
+            //1. 原始失敗案例: 
+            //Violation of PRIMARY KEY constraint 'PK_Roles'. Cannot insert duplicate key in object 'dbo.Roles'. The duplicate key value is (Role01).
+            try
+            {
+                Execute_NG();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+            
+            //2. 成功案例: (先決條件需要給不同的 PK 值)
+            //如果 3 個 table 都給新的 PK 值, 就會正常; 但系統需求上, 有可能因為只是修改部份內容, PK 會相同.
+            try
+            {
+                Execute_OK_With_New_PK();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+
+        static void Execute_NG()
+        {
             using (var db = new ManyToManyDbEntities())
             {
 
@@ -21,10 +47,7 @@ namespace MyTest01
                 var users = db.Users.ToList();
                 var roles = db.Roles.ToList();
                 var userRoles = db.UserRoles.ToList();
-                //如果 3 個 table 都給新的 PK, 就會正常; 但系統需求上, 有可能因為只是修改部份內容, PK 會相同.
-                var usersAdd = users.Select(x => new User() { UserId = x.UserId + "N", UserName = x.UserName}).ToList();
-                var rolesAdd = roles.Select(x => new Role() { RoleId = x.RoleId + "N", RoleName = x.RoleName }).ToList();
-                var userRolesAdd = userRoles.Select(x => new UserRole() { UserId = x.UserId + "N", RoleId = x.RoleId + "N" }).ToList();
+                var userRolesAdd = userRoles.Select(x => new UserRole() { UserId = x.UserId, RoleId = x.RoleId }).ToList();
 
                 //刪除資料
                 db.UserRoles.RemoveRange(userRoles);
@@ -37,8 +60,8 @@ namespace MyTest01
                 Console.ReadLine();
 
                 //加入資料
-                db.Users.AddRange(usersAdd);
-                db.Roles.AddRange(rolesAdd);
+                db.Users.AddRange(users);
+                db.Roles.AddRange(roles);
                 db.UserRoles.AddRange(userRolesAdd);
                 db.Database.Log = Console.WriteLine;
                 db.SaveChanges();
@@ -48,6 +71,47 @@ namespace MyTest01
 
             }
         }
+
+
+        static void Execute_OK_With_New_PK()
+        {
+
+            using (var db = new ManyToManyDbEntities())
+            {
+
+                //讀取資料
+                var users = db.Users.ToList();
+                var roles = db.Roles.ToList();
+                var userRoles = db.UserRoles.ToList();
+                //3 個 table 都給新的 PK 值
+                var usersAdd = users.Select(x => new User() { UserId = x.UserId + "N", UserName = x.UserName }).ToList();
+                var rolesAdd = roles.Select(x => new Role() { RoleId = x.RoleId + "N", RoleName = x.RoleName }).ToList();
+                var userRolesAdd = userRoles.Select(x => new UserRole() { UserId = x.UserId + "N", RoleId = x.RoleId + "N" }).ToList();
+
+                //刪除資料
+                db.UserRoles.RemoveRange(userRoles);
+                db.Roles.RemoveRange(roles);
+                db.Users.RemoveRange(users);
+                //db.Database.Log = Console.WriteLine;
+                //db.SaveChanges();
+
+                Console.WriteLine("Press any key to continue (3)...");
+                Console.ReadLine();
+
+                //加入資料
+                db.Users.AddRange(usersAdd);
+                db.Roles.AddRange(rolesAdd);
+                db.UserRoles.AddRange(userRolesAdd);
+                db.Database.Log = Console.WriteLine;
+                db.SaveChanges();
+
+                Console.WriteLine("Press any key to continue (4)...");
+                Console.ReadLine();
+
+            }
+
+        }
+
 
         static void DisplayAll()
         {
