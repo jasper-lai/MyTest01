@@ -1,5 +1,14 @@
 # MyTest01
 
+## 最後解法:
+    Dbcontext 
+    { 
+      TransactionScope  
+      {
+         [ RemoveRange() --> SaveChanges() --> AddRange() --> SaveChange() ] 
+      }
+    }
+
 ## 真實情境:
 最近有一個專案 必須將 Microsoft Project 檔案上傳到伺服端, 經過 3rd library : MPXJ 解析 (這個部份已完成), 取出 Tasks / Resources (多對多), 並作成 TaskToResources 對應, 以解決多對多的問題.  
 每次上傳 Microsoft Project 檔案, 都要先將舊的 TaskToResources / Resources / Tasks 先刪掉 再加入新的 Tasks / Resources / TaskToResources 但會出現 'ProjectModel.FK_TaskToResources_Resources' 關聯性的主要端點已刪除 的錯誤, 為簡化問題, 故採用以下 {模擬情境} 作模擬.  
